@@ -1,20 +1,134 @@
 # Reproducible Research: Peer Assessment 1
+This assignment makes use of data from a personal activity monitoring device. 
+This device collects data at 5 minute intervals through out the day. The data consists of two months of data from an anonymous individual collected during 
+the months of October and November, 2012 and include the number of steps taken 
+in 5 minute intervals each day.
 
 
 ## Loading and preprocessing the data
 
+The following code downloads the zip file into a temporary file, then extracts 
+the text file and reads the data into a data frame called rawdata.
+```{r rawdata, echo=TRUE, cache=TRUE}
+url = "https://d396qusza40orc.cloudfront.net/repdata%2Fdata%2Factivity.zip"
+temp <- tempfile()
+download.file(url, destfile = temp, method = "curl")
+rawdata <- read.csv(unz(temp, "activity.csv"))
+unlink(temp)
+```
+
+The raw data, stored in the data frame `rawdata`, looks like this:
+```{r showrawdata, echo=FALSE}
+head(rawdata)
+```
+
+
+For analysis, it will be more convenient to rearrange the data as a matrix of measurments (i.e. steps) by date (as columns) and by interval (as rows).
+The data, in a format suitable for analysis, will be stored in the data frame "tidydata".
+```{r maketidy, echo=TRUE}
+tidysplit <- with(rawdata, split(steps, date))
+tidy1 <- sapply(tidysplit, cbind)
+tidydata <- as.data.frame(tidy1)
+rownames(tidydata) <- levels(as.factor(rawdata$interval))
+```
+
+This is a sample of tidy data, stored in the data frame `tidydata`:
+```{r tidy_dates, echo=FALSE}
+head(sample(tidydata, size = 6))
+```
 
 
 ## What is mean total number of steps taken per day?
 
+The following code creates a histogram of the total number of steps taken each
+day. In the histogram, there is no bar for days in which there are no 
+values recorded.  
+
+**Note:** For convenience, the raw data is used, but with one transformation: the dates have been converted from a factor to a date.
+```{r lib_ggplot2, echo=TRUE, fig.width=10, cache=TRUE}
+tidy2 <- transform(rawdata, date = as.Date(rawdata$date, format = "%Y-%m-%d"))
+library(ggplot2)
+ggplot(tidy2, aes(x = date)) + geom_histogram(binwidth = 1, aes(weight = steps), color = "white") + scale_x_date(breaks = "1 day", limits = c(as.Date(tidy2[which.min(tidy2[, 2]), 2]), as.Date(tidy2[which.max(tidy2[, 2]), 2]) + 1), expand = c(0 ,0)) + ylab("steps") + xlab("date") + theme(axis.text.x = element_text(angle = 90, hjust = 1, vjust = 1))
+```
+
+The following code creates a table displaying the **mean** and **median** total number of steps taken each day.  
+
+**Note:** NA values have been excluded from the computation. Days in which there were no valid measurements (i.e. only NA values) are not displayed.
+```{r mmstepsperday, echo=TRUE, results='asis'}
+mean1 <- as.data.frame(sapply(tidydata, mean, na.rm = TRUE))
+names(mean1) <- "mean steps per day"
+median1 <- as.data.frame(sapply(tidydata, median, na.rm = TRUE))
+names(median1) <- "median steps per day"
+mm <- cbind(mean1, median1)
+library(xtable)
+xtmean <- xtable(na.omit(mm), align = "lrr")
+print(xtmean, type = "html")
+```
 
 
 ## What is the average daily activity pattern?
 
+The following code generates a time series plot of the 5-minute interval (x-axis) and the average number of steps taken, averaged across all days (y-axis).  
+```{r avgstepsperinterval, echo=TRUE}
+intnames <- rownames(tidydata)
+avgsteps <- tapply(rawdata$steps, rawdata$interval, mean, na.rm = TRUE)
+plot(intnames, avgsteps, type = "l", xlab = "5-minute interval", ylab = "average number of steps (across all days)")
+```
+
+The following code identifies the name of the 5-minute interval containing the maximum average number of steps, calculated across all the days in the dataset.
+```{r maxnumsteps5minterval, echo=TRUE}
+names(which.max(avgsteps))
+```
 
 
 ## Imputing missing values
 
+The following code calculates the total number of missing values in the dataset.  
+```{r totNAs, echo=TRUE}
+stepsNA <- is.na(tidydata)
+sum(stepsNA)
+```
+
+The following code creates a new version of tidy data (`tidydata2`) where NA values have been replaced with the corresponding mean number of steps for the 5-minute interval, averaged across all days.
+```{r replaceNAs, echo=TRUE}
+tidydata2 <- tidydata
+avgstepsinterval <- as.vector(avgsteps)
+
+for(r in 1:nrow(tidydata2)) {
+    for(c in 1:ncol(tidydata2)) {
+        if(is.na(tidydata2[r, c])==TRUE) {
+            tidydata2[r, c] <- avgstepsinterval[r]
+        }
+        else { next(c) }
+    }
+}
+```
+
+This is a sample showing imputed values in `tidydata2`:
+```{r newtidy, echo=FALSE}
+head(sample(tidydata2, size = 12))
+```
 
 
 ## Are there differences in activity patterns between weekdays and weekends?
+
+The following code creates a new factor variable in the `tidy2` dataset with two levels -- "weekday" and "weekend" indicating whether a given date is a weekday or weekend day.
+```{r weekday, echo=TRUE, cache=TRUE}
+tidy2$weekday <- weekdays(tidy2$date)
+for(r in 1:nrow(tidy2)) {
+    if(tidy2[r, 4]=="Saturday" | tidy2[r, 4]=="Sunday") { tidy2[r, 4] <- "weekend" }
+    else { tidy2[r, 4] <- "weekday" }
+}
+tidy2 <- transform(tidy2, weekday = factor(weekday))
+levels(tidy2$weekday)
+```
+
+
+The following code creates a panel plot containing a time series plot (i.e. type = "l") of the 5-minute interval (x-axis) and the average number of steps taken, averaged across all weekday days or weekend days (y-axis).
+```{r plotbyweekday, echo=TRUE, fig.width=10}
+head(tidy2[tidy2$weekday=="weekend"])
+intervals <- as.factor(tidy2$interval)
+avgsteps2 <- tapply(tidy2$steps, tidy2$interval, mean, na.rm = TRUE)
+library(lattice)
+xyplot(avgsteps2 ~ intervals | weekday, data = tidy2, layout = c(1, 2), type = "l")
+```
