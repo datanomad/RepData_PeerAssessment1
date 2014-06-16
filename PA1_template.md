@@ -44,13 +44,13 @@ rownames(tidydata) <- levels(as.factor(rawdata$interval))
 This is a sample of tidy data, stored in the data frame `tidydata`:
 
 ```
-##    2012-11-10 2012-11-06 2012-10-24 2012-11-11 2012-10-11 2012-11-09
-## 0          NA          0          0          0          0         NA
-## 5          NA          0          0          0          0         NA
-## 10         NA          0          0          0          0         NA
-## 15         NA          0          0          0          8         NA
-## 20         NA          0          0          0          0         NA
-## 25         NA          0          0          0          0         NA
+##    2012-11-29 2012-10-10 2012-11-07 2012-11-15 2012-11-28 2012-10-16
+## 0           0         34          0          0          0          0
+## 5           0         18          0          0          0          0
+## 10          0          7          0          0          0          0
+## 15          0          0          0          0          0          0
+## 20          0          0          0          0          0          0
+## 25          0          0          0          0          0          0
 ```
 
 
@@ -86,7 +86,7 @@ print(xtmean, type = "html")
 ```
 
 <!-- html table generated in R 3.1.0 by xtable 1.7-3 package -->
-<!-- Mon Jun 16 01:06:14 2014 -->
+<!-- Mon Jun 16 02:18:27 2014 -->
 <TABLE border=1>
 <TR> <TH>  </TH> <TH> mean steps per day </TH> <TH> median steps per day </TH>  </TR>
   <TR> <TD> 2012-10-02 </TD> <TD align="right"> 0.44 </TD> <TD align="right"> 0.00 </TD> </TR>
@@ -200,35 +200,120 @@ for(r in 1:nrow(tidydata2)) {
 This is a sample showing imputed values in `tidydata2`:
 
 ```
-##    2012-11-01 2012-10-28 2012-11-26 2012-10-05 2012-11-15 2012-11-25
-## 0     1.71698          0          0          0          0          0
-## 5     0.33962          0          0          0          0          0
-## 10    0.13208          0          0          0          0          0
-## 15    0.15094          0          0          0          0          0
-## 20    0.07547          0          0          0          0          0
-## 25    2.09434          0          0          0          0          0
-##    2012-11-08 2012-10-08 2012-10-24 2012-11-03 2012-10-01 2012-11-13
-## 0           0    1.71698          0          0    1.71698          0
-## 5           0    0.33962          0          0    0.33962          0
-## 10          0    0.13208          0          0    0.13208          0
-## 15          0    0.15094          0          0    0.15094          0
-## 20          0    0.07547          0          0    0.07547          0
-## 25          0    2.09434          0          0    2.09434          0
+##    2012-11-26 2012-10-21 2012-11-15 2012-10-24 2012-11-17 2012-11-04
+## 0           0          0          0          0          0    1.71698
+## 5           0          0          0          0          0    0.33962
+## 10          0          0          0          0          0    0.13208
+## 15          0          0          0          0          0    0.15094
+## 20          0          0          0          0          0    0.07547
+## 25          0          0          0          0          0    2.09434
+##    2012-10-26 2012-11-23 2012-11-22 2012-10-27 2012-11-12 2012-10-10
+## 0           0          0          0          0          0         34
+## 5           0          0          0          0          0         18
+## 10          0          0          0          0          0          7
+## 15          0          0          0          0          0          0
+## 20          0          0          0          0          0          0
+## 25          0          0          0          0          0          0
 ```
 
+
+```r
+ggplot(tidy2, aes(x = date)) + geom_histogram(binwidth = 1, aes(weight = steps), color = "white") + scale_x_date(breaks = "1 day", limits = c(as.Date(tidy2[which.min(tidy2[, 2]), 2]), as.Date(tidy2[which.max(tidy2[, 2]), 2]) + 1), expand = c(0 ,0)) + ylab("steps") + xlab("date") + theme(axis.text.x = element_text(angle = 90, hjust = 1, vjust = 1))
+```
+
+![plot of chunk histpostimput](figure/histpostimput.png) 
+
+
+```r
+mean1 <- as.data.frame(sapply(tidydata2, mean, na.rm = TRUE))
+names(mean1) <- "mean steps per day"
+median1 <- as.data.frame(sapply(tidydata2, median, na.rm = TRUE))
+names(median1) <- "median steps per day"
+mm <- cbind(mean1, median1)
+library(xtable)
+xtmean <- xtable(na.omit(mm), align = "lrr")
+print(xtmean, type = "html")
+```
+
+<!-- html table generated in R 3.1.0 by xtable 1.7-3 package -->
+<!-- Mon Jun 16 02:18:28 2014 -->
+<TABLE border=1>
+<TR> <TH>  </TH> <TH> mean steps per day </TH> <TH> median steps per day </TH>  </TR>
+  <TR> <TD> 2012-10-01 </TD> <TD align="right"> 37.38 </TD> <TD align="right"> 34.11 </TD> </TR>
+  <TR> <TD> 2012-10-02 </TD> <TD align="right"> 0.44 </TD> <TD align="right"> 0.00 </TD> </TR>
+  <TR> <TD> 2012-10-03 </TD> <TD align="right"> 39.42 </TD> <TD align="right"> 0.00 </TD> </TR>
+  <TR> <TD> 2012-10-04 </TD> <TD align="right"> 42.07 </TD> <TD align="right"> 0.00 </TD> </TR>
+  <TR> <TD> 2012-10-05 </TD> <TD align="right"> 46.16 </TD> <TD align="right"> 0.00 </TD> </TR>
+  <TR> <TD> 2012-10-06 </TD> <TD align="right"> 53.54 </TD> <TD align="right"> 0.00 </TD> </TR>
+  <TR> <TD> 2012-10-07 </TD> <TD align="right"> 38.25 </TD> <TD align="right"> 0.00 </TD> </TR>
+  <TR> <TD> 2012-10-08 </TD> <TD align="right"> 37.38 </TD> <TD align="right"> 34.11 </TD> </TR>
+  <TR> <TD> 2012-10-09 </TD> <TD align="right"> 44.48 </TD> <TD align="right"> 0.00 </TD> </TR>
+  <TR> <TD> 2012-10-10 </TD> <TD align="right"> 34.38 </TD> <TD align="right"> 0.00 </TD> </TR>
+  <TR> <TD> 2012-10-11 </TD> <TD align="right"> 35.78 </TD> <TD align="right"> 0.00 </TD> </TR>
+  <TR> <TD> 2012-10-12 </TD> <TD align="right"> 60.35 </TD> <TD align="right"> 0.00 </TD> </TR>
+  <TR> <TD> 2012-10-13 </TD> <TD align="right"> 43.15 </TD> <TD align="right"> 0.00 </TD> </TR>
+  <TR> <TD> 2012-10-14 </TD> <TD align="right"> 52.42 </TD> <TD align="right"> 0.00 </TD> </TR>
+  <TR> <TD> 2012-10-15 </TD> <TD align="right"> 35.20 </TD> <TD align="right"> 0.00 </TD> </TR>
+  <TR> <TD> 2012-10-16 </TD> <TD align="right"> 52.38 </TD> <TD align="right"> 0.00 </TD> </TR>
+  <TR> <TD> 2012-10-17 </TD> <TD align="right"> 46.71 </TD> <TD align="right"> 0.00 </TD> </TR>
+  <TR> <TD> 2012-10-18 </TD> <TD align="right"> 34.92 </TD> <TD align="right"> 0.00 </TD> </TR>
+  <TR> <TD> 2012-10-19 </TD> <TD align="right"> 41.07 </TD> <TD align="right"> 0.00 </TD> </TR>
+  <TR> <TD> 2012-10-20 </TD> <TD align="right"> 36.09 </TD> <TD align="right"> 0.00 </TD> </TR>
+  <TR> <TD> 2012-10-21 </TD> <TD align="right"> 30.63 </TD> <TD align="right"> 0.00 </TD> </TR>
+  <TR> <TD> 2012-10-22 </TD> <TD align="right"> 46.74 </TD> <TD align="right"> 0.00 </TD> </TR>
+  <TR> <TD> 2012-10-23 </TD> <TD align="right"> 30.97 </TD> <TD align="right"> 0.00 </TD> </TR>
+  <TR> <TD> 2012-10-24 </TD> <TD align="right"> 29.01 </TD> <TD align="right"> 0.00 </TD> </TR>
+  <TR> <TD> 2012-10-25 </TD> <TD align="right"> 8.65 </TD> <TD align="right"> 0.00 </TD> </TR>
+  <TR> <TD> 2012-10-26 </TD> <TD align="right"> 23.53 </TD> <TD align="right"> 0.00 </TD> </TR>
+  <TR> <TD> 2012-10-27 </TD> <TD align="right"> 35.14 </TD> <TD align="right"> 0.00 </TD> </TR>
+  <TR> <TD> 2012-10-28 </TD> <TD align="right"> 39.78 </TD> <TD align="right"> 0.00 </TD> </TR>
+  <TR> <TD> 2012-10-29 </TD> <TD align="right"> 17.42 </TD> <TD align="right"> 0.00 </TD> </TR>
+  <TR> <TD> 2012-10-30 </TD> <TD align="right"> 34.09 </TD> <TD align="right"> 0.00 </TD> </TR>
+  <TR> <TD> 2012-10-31 </TD> <TD align="right"> 53.52 </TD> <TD align="right"> 0.00 </TD> </TR>
+  <TR> <TD> 2012-11-01 </TD> <TD align="right"> 37.38 </TD> <TD align="right"> 34.11 </TD> </TR>
+  <TR> <TD> 2012-11-02 </TD> <TD align="right"> 36.81 </TD> <TD align="right"> 0.00 </TD> </TR>
+  <TR> <TD> 2012-11-03 </TD> <TD align="right"> 36.70 </TD> <TD align="right"> 0.00 </TD> </TR>
+  <TR> <TD> 2012-11-04 </TD> <TD align="right"> 37.38 </TD> <TD align="right"> 34.11 </TD> </TR>
+  <TR> <TD> 2012-11-05 </TD> <TD align="right"> 36.25 </TD> <TD align="right"> 0.00 </TD> </TR>
+  <TR> <TD> 2012-11-06 </TD> <TD align="right"> 28.94 </TD> <TD align="right"> 0.00 </TD> </TR>
+  <TR> <TD> 2012-11-07 </TD> <TD align="right"> 44.73 </TD> <TD align="right"> 0.00 </TD> </TR>
+  <TR> <TD> 2012-11-08 </TD> <TD align="right"> 11.18 </TD> <TD align="right"> 0.00 </TD> </TR>
+  <TR> <TD> 2012-11-09 </TD> <TD align="right"> 37.38 </TD> <TD align="right"> 34.11 </TD> </TR>
+  <TR> <TD> 2012-11-10 </TD> <TD align="right"> 37.38 </TD> <TD align="right"> 34.11 </TD> </TR>
+  <TR> <TD> 2012-11-11 </TD> <TD align="right"> 43.78 </TD> <TD align="right"> 0.00 </TD> </TR>
+  <TR> <TD> 2012-11-12 </TD> <TD align="right"> 37.38 </TD> <TD align="right"> 0.00 </TD> </TR>
+  <TR> <TD> 2012-11-13 </TD> <TD align="right"> 25.47 </TD> <TD align="right"> 0.00 </TD> </TR>
+  <TR> <TD> 2012-11-14 </TD> <TD align="right"> 37.38 </TD> <TD align="right"> 34.11 </TD> </TR>
+  <TR> <TD> 2012-11-15 </TD> <TD align="right"> 0.14 </TD> <TD align="right"> 0.00 </TD> </TR>
+  <TR> <TD> 2012-11-16 </TD> <TD align="right"> 18.89 </TD> <TD align="right"> 0.00 </TD> </TR>
+  <TR> <TD> 2012-11-17 </TD> <TD align="right"> 49.79 </TD> <TD align="right"> 0.00 </TD> </TR>
+  <TR> <TD> 2012-11-18 </TD> <TD align="right"> 52.47 </TD> <TD align="right"> 0.00 </TD> </TR>
+  <TR> <TD> 2012-11-19 </TD> <TD align="right"> 30.70 </TD> <TD align="right"> 0.00 </TD> </TR>
+  <TR> <TD> 2012-11-20 </TD> <TD align="right"> 15.53 </TD> <TD align="right"> 0.00 </TD> </TR>
+  <TR> <TD> 2012-11-21 </TD> <TD align="right"> 44.40 </TD> <TD align="right"> 0.00 </TD> </TR>
+  <TR> <TD> 2012-11-22 </TD> <TD align="right"> 70.93 </TD> <TD align="right"> 0.00 </TD> </TR>
+  <TR> <TD> 2012-11-23 </TD> <TD align="right"> 73.59 </TD> <TD align="right"> 0.00 </TD> </TR>
+  <TR> <TD> 2012-11-24 </TD> <TD align="right"> 50.27 </TD> <TD align="right"> 0.00 </TD> </TR>
+  <TR> <TD> 2012-11-25 </TD> <TD align="right"> 41.09 </TD> <TD align="right"> 0.00 </TD> </TR>
+  <TR> <TD> 2012-11-26 </TD> <TD align="right"> 38.76 </TD> <TD align="right"> 0.00 </TD> </TR>
+  <TR> <TD> 2012-11-27 </TD> <TD align="right"> 47.38 </TD> <TD align="right"> 0.00 </TD> </TR>
+  <TR> <TD> 2012-11-28 </TD> <TD align="right"> 35.36 </TD> <TD align="right"> 0.00 </TD> </TR>
+  <TR> <TD> 2012-11-29 </TD> <TD align="right"> 24.47 </TD> <TD align="right"> 0.00 </TD> </TR>
+  <TR> <TD> 2012-11-30 </TD> <TD align="right"> 37.38 </TD> <TD align="right"> 34.11 </TD> </TR>
+   </TABLE>
 
 ## Are there differences in activity patterns between weekdays and weekends?
 
 The following code creates a new factor variable in the `tidy2` dataset with two levels -- "weekday" and "weekend" indicating whether a given date is a weekday or weekend day.
 
 ```r
-tidy2$weekday <- weekdays(tidy2$date)
+tidy2$wd <- weekdays(tidy2$date)
 for(r in 1:nrow(tidy2)) {
     if(tidy2[r, 4]=="Saturday" | tidy2[r, 4]=="Sunday") { tidy2[r, 4] <- "weekend" }
     else { tidy2[r, 4] <- "weekday" }
 }
-tidy2 <- transform(tidy2, weekday = factor(weekday))
-levels(tidy2$weekday)
+tidy2 <- transform(tidy2, wd = factor(wd))
+levels(tidy2$wd)
 ```
 
 ```
@@ -239,18 +324,10 @@ levels(tidy2$weekday)
 The following code creates a panel plot containing a time series plot (i.e. type = "l") of the 5-minute interval (x-axis) and the average number of steps taken, averaged across all weekday days or weekend days (y-axis).
 
 ```r
-head(tidy2[tidy2$weekday=="weekend"])
-```
-
-```
-## Error: undefined columns selected
-```
-
-```r
 intervals <- as.factor(tidy2$interval)
 avgsteps2 <- tapply(tidy2$steps, tidy2$interval, mean, na.rm = TRUE)
 library(lattice)
-xyplot(avgsteps2 ~ intervals | weekday, data = tidy2, layout = c(1, 2), type = "l")
+xyplot(avgsteps2 ~ intervals | tidy2$wd, layout = c(1, 2), type = "l")
 ```
 
 ![plot of chunk plotbyweekday](figure/plotbyweekday.png) 
