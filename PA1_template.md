@@ -1,4 +1,5 @@
 # Reproducible Research: Peer Assessment 1
+
 This assignment makes use of data from a personal activity monitoring device. 
 This device collects data at 5 minute intervals through out the day. The data consists of two months of data from an anonymous individual collected during 
 the months of October and November, 2012 and include the number of steps taken 
@@ -20,6 +21,10 @@ unlink(temp)
 
 The raw data, stored in the data frame `rawdata`, looks like this:
 
+```r
+head(rawdata)
+```
+
 ```
 ##   steps       date interval
 ## 1    NA 2012-10-01        0
@@ -31,8 +36,8 @@ The raw data, stored in the data frame `rawdata`, looks like this:
 ```
 
 
-For analysis, it will be more convenient to rearrange the data as a matrix of measurments (i.e. steps) by date (as columns) and by interval (as rows).
-The data, in a format suitable for analysis, will be stored in the data frame "tidydata".
+For analysis, it will be more convenient to rearrange the data as a matrix of measurments (i.e. steps) by date (columns) and by interval (rows).
+The data, in a format suitable for analysis, will be stored in a data frame called tidydata.
 
 ```r
 tidysplit <- with(rawdata, split(steps, date))
@@ -43,14 +48,18 @@ rownames(tidydata) <- levels(as.factor(rawdata$interval))
 
 This is a sample of tidy data, stored in the data frame `tidydata`:
 
+```r
+head(tidydata[, c(4, 10, 32, 44, 52, 60)])
 ```
-##    2012-11-29 2012-10-10 2012-11-07 2012-11-15 2012-11-28 2012-10-16
-## 0           0         34          0          0          0          0
-## 5           0         18          0          0          0          0
-## 10          0          7          0          0          0          0
-## 15          0          0          0          0          0          0
-## 20          0          0          0          0          0          0
-## 25          0          0          0          0          0          0
+
+```
+##    2012-10-04 2012-10-10 2012-11-01 2012-11-13 2012-11-21 2012-11-29
+## 0          47         34         NA          0          0          0
+## 5           0         18         NA          0          0          0
+## 10          0          7         NA          0          0          0
+## 15          0          0         NA          0          0          0
+## 20          0          0         NA          0          0          0
+## 25          0          0         NA          0          0          0
 ```
 
 
@@ -60,89 +69,42 @@ The following code creates a histogram of the total number of steps taken each
 day. In the histogram, there is no bar for days in which there are no 
 values recorded.  
 
-**Note:** For convenience, the raw data is used, but with one transformation: the dates have been converted from a factor to a date.
+**Note:** The raw data is used in this calculation, but with one transformation: the dates have been converted from a factor to a date.  
 
 ```r
 tidy2 <- transform(rawdata, date = as.Date(rawdata$date, format = "%Y-%m-%d"))
 library(ggplot2)
-ggplot(tidy2, aes(x = date)) + geom_histogram(binwidth = 1, aes(weight = steps), color = "white") + scale_x_date(breaks = "1 day", limits = c(as.Date(tidy2[which.min(tidy2[, 2]), 2]), as.Date(tidy2[which.max(tidy2[, 2]), 2]) + 1), expand = c(0 ,0)) + ylab("steps") + xlab("date") + theme(axis.text.x = element_text(angle = 90, hjust = 1, vjust = 1))
+hist_1 <- ggplot(tidy2, aes(x = date)) + geom_histogram(binwidth = 1, aes(weight = steps)) + scale_x_date(breaks = "1 day", limits = c(as.Date(tidy2[which.min(tidy2[, 2]), 2]), as.Date(tidy2[which.max(tidy2[, 2]), 2]) + 1), expand = c(0 ,0)) + ylab("total steps") + xlab("date") + theme(axis.text.x = element_text(angle = 90, hjust = 1, vjust = 1))
+hist_1
 ```
 
-![plot of chunk lib_ggplot2](figure/lib_ggplot2.png) 
+![plot of chunk hist_1](./PA1_template_files/figure-html/hist_1.png) 
 
-The following code creates a table displaying the **mean** and **median** total number of steps taken each day.  
-
-**Note:** NA values have been excluded from the computation. Days in which there were no valid measurements (i.e. only NA values) are not displayed.
+The following code adds two horizontal lines intersecting the y axis at the **mean** (red solid line) and **median** (blue dotted line) total number of steps taken each day (i.e. the mean and median total number of steps taken each day, calculated across all days). **Note:** Days in which there were no valid measurements (i.e. only NA values) were excluded from these calculations.  
 
 ```r
-mean1 <- as.data.frame(sapply(tidydata, mean, na.rm = TRUE))
-names(mean1) <- "mean steps per day"
-median1 <- as.data.frame(sapply(tidydata, median, na.rm = TRUE))
-names(median1) <- "median steps per day"
-mm <- cbind(mean1, median1)
-library(xtable)
-xtmean <- xtable(na.omit(mm), align = "lrr")
-print(xtmean, type = "html")
+mean1 <- mean(colSums(tidydata, na.rm = TRUE))
+mean1
 ```
 
-<!-- html table generated in R 3.1.0 by xtable 1.7-3 package -->
-<!-- Mon Jun 16 02:18:27 2014 -->
-<TABLE border=1>
-<TR> <TH>  </TH> <TH> mean steps per day </TH> <TH> median steps per day </TH>  </TR>
-  <TR> <TD> 2012-10-02 </TD> <TD align="right"> 0.44 </TD> <TD align="right"> 0.00 </TD> </TR>
-  <TR> <TD> 2012-10-03 </TD> <TD align="right"> 39.42 </TD> <TD align="right"> 0.00 </TD> </TR>
-  <TR> <TD> 2012-10-04 </TD> <TD align="right"> 42.07 </TD> <TD align="right"> 0.00 </TD> </TR>
-  <TR> <TD> 2012-10-05 </TD> <TD align="right"> 46.16 </TD> <TD align="right"> 0.00 </TD> </TR>
-  <TR> <TD> 2012-10-06 </TD> <TD align="right"> 53.54 </TD> <TD align="right"> 0.00 </TD> </TR>
-  <TR> <TD> 2012-10-07 </TD> <TD align="right"> 38.25 </TD> <TD align="right"> 0.00 </TD> </TR>
-  <TR> <TD> 2012-10-09 </TD> <TD align="right"> 44.48 </TD> <TD align="right"> 0.00 </TD> </TR>
-  <TR> <TD> 2012-10-10 </TD> <TD align="right"> 34.38 </TD> <TD align="right"> 0.00 </TD> </TR>
-  <TR> <TD> 2012-10-11 </TD> <TD align="right"> 35.78 </TD> <TD align="right"> 0.00 </TD> </TR>
-  <TR> <TD> 2012-10-12 </TD> <TD align="right"> 60.35 </TD> <TD align="right"> 0.00 </TD> </TR>
-  <TR> <TD> 2012-10-13 </TD> <TD align="right"> 43.15 </TD> <TD align="right"> 0.00 </TD> </TR>
-  <TR> <TD> 2012-10-14 </TD> <TD align="right"> 52.42 </TD> <TD align="right"> 0.00 </TD> </TR>
-  <TR> <TD> 2012-10-15 </TD> <TD align="right"> 35.20 </TD> <TD align="right"> 0.00 </TD> </TR>
-  <TR> <TD> 2012-10-16 </TD> <TD align="right"> 52.38 </TD> <TD align="right"> 0.00 </TD> </TR>
-  <TR> <TD> 2012-10-17 </TD> <TD align="right"> 46.71 </TD> <TD align="right"> 0.00 </TD> </TR>
-  <TR> <TD> 2012-10-18 </TD> <TD align="right"> 34.92 </TD> <TD align="right"> 0.00 </TD> </TR>
-  <TR> <TD> 2012-10-19 </TD> <TD align="right"> 41.07 </TD> <TD align="right"> 0.00 </TD> </TR>
-  <TR> <TD> 2012-10-20 </TD> <TD align="right"> 36.09 </TD> <TD align="right"> 0.00 </TD> </TR>
-  <TR> <TD> 2012-10-21 </TD> <TD align="right"> 30.63 </TD> <TD align="right"> 0.00 </TD> </TR>
-  <TR> <TD> 2012-10-22 </TD> <TD align="right"> 46.74 </TD> <TD align="right"> 0.00 </TD> </TR>
-  <TR> <TD> 2012-10-23 </TD> <TD align="right"> 30.97 </TD> <TD align="right"> 0.00 </TD> </TR>
-  <TR> <TD> 2012-10-24 </TD> <TD align="right"> 29.01 </TD> <TD align="right"> 0.00 </TD> </TR>
-  <TR> <TD> 2012-10-25 </TD> <TD align="right"> 8.65 </TD> <TD align="right"> 0.00 </TD> </TR>
-  <TR> <TD> 2012-10-26 </TD> <TD align="right"> 23.53 </TD> <TD align="right"> 0.00 </TD> </TR>
-  <TR> <TD> 2012-10-27 </TD> <TD align="right"> 35.14 </TD> <TD align="right"> 0.00 </TD> </TR>
-  <TR> <TD> 2012-10-28 </TD> <TD align="right"> 39.78 </TD> <TD align="right"> 0.00 </TD> </TR>
-  <TR> <TD> 2012-10-29 </TD> <TD align="right"> 17.42 </TD> <TD align="right"> 0.00 </TD> </TR>
-  <TR> <TD> 2012-10-30 </TD> <TD align="right"> 34.09 </TD> <TD align="right"> 0.00 </TD> </TR>
-  <TR> <TD> 2012-10-31 </TD> <TD align="right"> 53.52 </TD> <TD align="right"> 0.00 </TD> </TR>
-  <TR> <TD> 2012-11-02 </TD> <TD align="right"> 36.81 </TD> <TD align="right"> 0.00 </TD> </TR>
-  <TR> <TD> 2012-11-03 </TD> <TD align="right"> 36.70 </TD> <TD align="right"> 0.00 </TD> </TR>
-  <TR> <TD> 2012-11-05 </TD> <TD align="right"> 36.25 </TD> <TD align="right"> 0.00 </TD> </TR>
-  <TR> <TD> 2012-11-06 </TD> <TD align="right"> 28.94 </TD> <TD align="right"> 0.00 </TD> </TR>
-  <TR> <TD> 2012-11-07 </TD> <TD align="right"> 44.73 </TD> <TD align="right"> 0.00 </TD> </TR>
-  <TR> <TD> 2012-11-08 </TD> <TD align="right"> 11.18 </TD> <TD align="right"> 0.00 </TD> </TR>
-  <TR> <TD> 2012-11-11 </TD> <TD align="right"> 43.78 </TD> <TD align="right"> 0.00 </TD> </TR>
-  <TR> <TD> 2012-11-12 </TD> <TD align="right"> 37.38 </TD> <TD align="right"> 0.00 </TD> </TR>
-  <TR> <TD> 2012-11-13 </TD> <TD align="right"> 25.47 </TD> <TD align="right"> 0.00 </TD> </TR>
-  <TR> <TD> 2012-11-15 </TD> <TD align="right"> 0.14 </TD> <TD align="right"> 0.00 </TD> </TR>
-  <TR> <TD> 2012-11-16 </TD> <TD align="right"> 18.89 </TD> <TD align="right"> 0.00 </TD> </TR>
-  <TR> <TD> 2012-11-17 </TD> <TD align="right"> 49.79 </TD> <TD align="right"> 0.00 </TD> </TR>
-  <TR> <TD> 2012-11-18 </TD> <TD align="right"> 52.47 </TD> <TD align="right"> 0.00 </TD> </TR>
-  <TR> <TD> 2012-11-19 </TD> <TD align="right"> 30.70 </TD> <TD align="right"> 0.00 </TD> </TR>
-  <TR> <TD> 2012-11-20 </TD> <TD align="right"> 15.53 </TD> <TD align="right"> 0.00 </TD> </TR>
-  <TR> <TD> 2012-11-21 </TD> <TD align="right"> 44.40 </TD> <TD align="right"> 0.00 </TD> </TR>
-  <TR> <TD> 2012-11-22 </TD> <TD align="right"> 70.93 </TD> <TD align="right"> 0.00 </TD> </TR>
-  <TR> <TD> 2012-11-23 </TD> <TD align="right"> 73.59 </TD> <TD align="right"> 0.00 </TD> </TR>
-  <TR> <TD> 2012-11-24 </TD> <TD align="right"> 50.27 </TD> <TD align="right"> 0.00 </TD> </TR>
-  <TR> <TD> 2012-11-25 </TD> <TD align="right"> 41.09 </TD> <TD align="right"> 0.00 </TD> </TR>
-  <TR> <TD> 2012-11-26 </TD> <TD align="right"> 38.76 </TD> <TD align="right"> 0.00 </TD> </TR>
-  <TR> <TD> 2012-11-27 </TD> <TD align="right"> 47.38 </TD> <TD align="right"> 0.00 </TD> </TR>
-  <TR> <TD> 2012-11-28 </TD> <TD align="right"> 35.36 </TD> <TD align="right"> 0.00 </TD> </TR>
-  <TR> <TD> 2012-11-29 </TD> <TD align="right"> 24.47 </TD> <TD align="right"> 0.00 </TD> </TR>
-   </TABLE>
+```
+## [1] 9354
+```
+
+```r
+median1 <- median(colSums(tidydata, na.rm = TRUE))
+median1
+```
+
+```
+## [1] 10395
+```
+
+```r
+hist_1 + geom_hline(aes(yintercept = mean1), color = "red") + geom_hline(aes(yintercept = median1), color = "#0066ff", linetype="dashed") + annotate("text", x = as.Date(names(tidydata[2]), format = "%Y-%m-%d"), y = mean1 * 0.9, label = paste("mean: ", round(mean1, 0)), color = "red", hjust=0) + annotate("text", x = as.Date(names(tidydata[2]), format = "%Y-%m-%d"), y = median1 * 1.15, label = paste("median: ", round(median1, 0)), color = "#0066ff", hjust=0)
+```
+
+![plot of chunk mean_median_1](./PA1_template_files/figure-html/mean_median_1.png) 
 
 
 ## What is the average daily activity pattern?
@@ -155,9 +117,9 @@ avgsteps <- tapply(rawdata$steps, rawdata$interval, mean, na.rm = TRUE)
 plot(intnames, avgsteps, type = "l", xlab = "5-minute interval", ylab = "average number of steps (across all days)")
 ```
 
-![plot of chunk avgstepsperinterval](figure/avgstepsperinterval.png) 
+![plot of chunk avg_steps_per_interval](./PA1_template_files/figure-html/avg_steps_per_interval.png) 
 
-The following code identifies the name of the 5-minute interval containing the maximum average number of steps, calculated across all the days in the dataset.
+The following code identifies the name of the 5-minute interval containing the maximum average number of steps, calculated across all the days in the dataset.  
 
 ```r
 names(which.max(avgsteps))
@@ -173,138 +135,88 @@ names(which.max(avgsteps))
 The following code calculates the total number of missing values in the dataset.  
 
 ```r
-stepsNA <- is.na(tidydata)
-sum(stepsNA)
+sum(is.na(tidydata))
 ```
 
 ```
 ## [1] 2304
 ```
 
-The following code creates a new version of tidy data (`tidydata2`) where NA values have been replaced with the corresponding mean number of steps for the 5-minute interval, averaged across all days.
+The following code creates new versions of `tidydata2` and `tidy2` where NA values have been replaced with the corresponding mean number of steps for the 5-minute interval, averaged across all days.  
 
 ```r
 tidydata2 <- tidydata
-avgstepsinterval <- as.vector(avgsteps)
-
 for(r in 1:nrow(tidydata2)) {
     for(c in 1:ncol(tidydata2)) {
         if(is.na(tidydata2[r, c])==TRUE) {
-            tidydata2[r, c] <- avgstepsinterval[r]
+            tidydata2[r, c] <- as.vector(avgsteps)[r]
         }
         else { next(c) }
     }
 }
+
+for(i in 1:length(unique(tidy2$interval))){
+    tidy2[is.na(tidy2$steps) == TRUE & tidy2$interval == levels(as.factor(tidy2$interval))[i], "steps"] <- avgsteps[[i]]
+}
 ```
 
-This is a sample showing imputed values in `tidydata2`:
+This is a sample showing imputed values in `tidydata2` and `tidy2`:  
 
 ```
-##    2012-11-26 2012-10-21 2012-11-15 2012-10-24 2012-11-17 2012-11-04
-## 0           0          0          0          0          0    1.71698
-## 5           0          0          0          0          0    0.33962
-## 10          0          0          0          0          0    0.13208
-## 15          0          0          0          0          0    0.15094
-## 20          0          0          0          0          0    0.07547
-## 25          0          0          0          0          0    2.09434
-##    2012-10-26 2012-11-23 2012-11-22 2012-10-27 2012-11-12 2012-10-10
-## 0           0          0          0          0          0         34
-## 5           0          0          0          0          0         18
-## 10          0          0          0          0          0          7
-## 15          0          0          0          0          0          0
-## 20          0          0          0          0          0          0
-## 25          0          0          0          0          0          0
+##    2012-10-04 2012-10-10 2012-11-01 2012-11-13 2012-11-21 2012-11-29
+## 0          47         34    1.71698          0          0          0
+## 5           0         18    0.33962          0          0          0
+## 10          0          7    0.13208          0          0          0
+## 15          0          0    0.15094          0          0          0
+## 20          0          0    0.07547          0          0          0
+## 25          0          0    2.09434          0          0          0
 ```
 
+```
+##     steps       date interval
+## 1 1.71698 2012-10-01        0
+## 2 0.33962 2012-10-01        5
+## 3 0.13208 2012-10-01       10
+## 4 0.15094 2012-10-01       15
+## 5 0.07547 2012-10-01       20
+## 6 2.09434 2012-10-01       25
+```
+
+A new histogram of the total number of steps taken each day (including the mean and median):  
 
 ```r
-ggplot(tidy2, aes(x = date)) + geom_histogram(binwidth = 1, aes(weight = steps), color = "white") + scale_x_date(breaks = "1 day", limits = c(as.Date(tidy2[which.min(tidy2[, 2]), 2]), as.Date(tidy2[which.max(tidy2[, 2]), 2]) + 1), expand = c(0 ,0)) + ylab("steps") + xlab("date") + theme(axis.text.x = element_text(angle = 90, hjust = 1, vjust = 1))
+mean2 <- mean(colSums(tidydata2, na.rm = TRUE))
+mean2
 ```
 
-![plot of chunk histpostimput](figure/histpostimput.png) 
-
+```
+## [1] 10766
+```
 
 ```r
-mean1 <- as.data.frame(sapply(tidydata2, mean, na.rm = TRUE))
-names(mean1) <- "mean steps per day"
-median1 <- as.data.frame(sapply(tidydata2, median, na.rm = TRUE))
-names(median1) <- "median steps per day"
-mm <- cbind(mean1, median1)
-library(xtable)
-xtmean <- xtable(na.omit(mm), align = "lrr")
-print(xtmean, type = "html")
+median2 <- median(colSums(tidydata2, na.rm = TRUE))
+median2
 ```
 
-<!-- html table generated in R 3.1.0 by xtable 1.7-3 package -->
-<!-- Mon Jun 16 02:18:28 2014 -->
-<TABLE border=1>
-<TR> <TH>  </TH> <TH> mean steps per day </TH> <TH> median steps per day </TH>  </TR>
-  <TR> <TD> 2012-10-01 </TD> <TD align="right"> 37.38 </TD> <TD align="right"> 34.11 </TD> </TR>
-  <TR> <TD> 2012-10-02 </TD> <TD align="right"> 0.44 </TD> <TD align="right"> 0.00 </TD> </TR>
-  <TR> <TD> 2012-10-03 </TD> <TD align="right"> 39.42 </TD> <TD align="right"> 0.00 </TD> </TR>
-  <TR> <TD> 2012-10-04 </TD> <TD align="right"> 42.07 </TD> <TD align="right"> 0.00 </TD> </TR>
-  <TR> <TD> 2012-10-05 </TD> <TD align="right"> 46.16 </TD> <TD align="right"> 0.00 </TD> </TR>
-  <TR> <TD> 2012-10-06 </TD> <TD align="right"> 53.54 </TD> <TD align="right"> 0.00 </TD> </TR>
-  <TR> <TD> 2012-10-07 </TD> <TD align="right"> 38.25 </TD> <TD align="right"> 0.00 </TD> </TR>
-  <TR> <TD> 2012-10-08 </TD> <TD align="right"> 37.38 </TD> <TD align="right"> 34.11 </TD> </TR>
-  <TR> <TD> 2012-10-09 </TD> <TD align="right"> 44.48 </TD> <TD align="right"> 0.00 </TD> </TR>
-  <TR> <TD> 2012-10-10 </TD> <TD align="right"> 34.38 </TD> <TD align="right"> 0.00 </TD> </TR>
-  <TR> <TD> 2012-10-11 </TD> <TD align="right"> 35.78 </TD> <TD align="right"> 0.00 </TD> </TR>
-  <TR> <TD> 2012-10-12 </TD> <TD align="right"> 60.35 </TD> <TD align="right"> 0.00 </TD> </TR>
-  <TR> <TD> 2012-10-13 </TD> <TD align="right"> 43.15 </TD> <TD align="right"> 0.00 </TD> </TR>
-  <TR> <TD> 2012-10-14 </TD> <TD align="right"> 52.42 </TD> <TD align="right"> 0.00 </TD> </TR>
-  <TR> <TD> 2012-10-15 </TD> <TD align="right"> 35.20 </TD> <TD align="right"> 0.00 </TD> </TR>
-  <TR> <TD> 2012-10-16 </TD> <TD align="right"> 52.38 </TD> <TD align="right"> 0.00 </TD> </TR>
-  <TR> <TD> 2012-10-17 </TD> <TD align="right"> 46.71 </TD> <TD align="right"> 0.00 </TD> </TR>
-  <TR> <TD> 2012-10-18 </TD> <TD align="right"> 34.92 </TD> <TD align="right"> 0.00 </TD> </TR>
-  <TR> <TD> 2012-10-19 </TD> <TD align="right"> 41.07 </TD> <TD align="right"> 0.00 </TD> </TR>
-  <TR> <TD> 2012-10-20 </TD> <TD align="right"> 36.09 </TD> <TD align="right"> 0.00 </TD> </TR>
-  <TR> <TD> 2012-10-21 </TD> <TD align="right"> 30.63 </TD> <TD align="right"> 0.00 </TD> </TR>
-  <TR> <TD> 2012-10-22 </TD> <TD align="right"> 46.74 </TD> <TD align="right"> 0.00 </TD> </TR>
-  <TR> <TD> 2012-10-23 </TD> <TD align="right"> 30.97 </TD> <TD align="right"> 0.00 </TD> </TR>
-  <TR> <TD> 2012-10-24 </TD> <TD align="right"> 29.01 </TD> <TD align="right"> 0.00 </TD> </TR>
-  <TR> <TD> 2012-10-25 </TD> <TD align="right"> 8.65 </TD> <TD align="right"> 0.00 </TD> </TR>
-  <TR> <TD> 2012-10-26 </TD> <TD align="right"> 23.53 </TD> <TD align="right"> 0.00 </TD> </TR>
-  <TR> <TD> 2012-10-27 </TD> <TD align="right"> 35.14 </TD> <TD align="right"> 0.00 </TD> </TR>
-  <TR> <TD> 2012-10-28 </TD> <TD align="right"> 39.78 </TD> <TD align="right"> 0.00 </TD> </TR>
-  <TR> <TD> 2012-10-29 </TD> <TD align="right"> 17.42 </TD> <TD align="right"> 0.00 </TD> </TR>
-  <TR> <TD> 2012-10-30 </TD> <TD align="right"> 34.09 </TD> <TD align="right"> 0.00 </TD> </TR>
-  <TR> <TD> 2012-10-31 </TD> <TD align="right"> 53.52 </TD> <TD align="right"> 0.00 </TD> </TR>
-  <TR> <TD> 2012-11-01 </TD> <TD align="right"> 37.38 </TD> <TD align="right"> 34.11 </TD> </TR>
-  <TR> <TD> 2012-11-02 </TD> <TD align="right"> 36.81 </TD> <TD align="right"> 0.00 </TD> </TR>
-  <TR> <TD> 2012-11-03 </TD> <TD align="right"> 36.70 </TD> <TD align="right"> 0.00 </TD> </TR>
-  <TR> <TD> 2012-11-04 </TD> <TD align="right"> 37.38 </TD> <TD align="right"> 34.11 </TD> </TR>
-  <TR> <TD> 2012-11-05 </TD> <TD align="right"> 36.25 </TD> <TD align="right"> 0.00 </TD> </TR>
-  <TR> <TD> 2012-11-06 </TD> <TD align="right"> 28.94 </TD> <TD align="right"> 0.00 </TD> </TR>
-  <TR> <TD> 2012-11-07 </TD> <TD align="right"> 44.73 </TD> <TD align="right"> 0.00 </TD> </TR>
-  <TR> <TD> 2012-11-08 </TD> <TD align="right"> 11.18 </TD> <TD align="right"> 0.00 </TD> </TR>
-  <TR> <TD> 2012-11-09 </TD> <TD align="right"> 37.38 </TD> <TD align="right"> 34.11 </TD> </TR>
-  <TR> <TD> 2012-11-10 </TD> <TD align="right"> 37.38 </TD> <TD align="right"> 34.11 </TD> </TR>
-  <TR> <TD> 2012-11-11 </TD> <TD align="right"> 43.78 </TD> <TD align="right"> 0.00 </TD> </TR>
-  <TR> <TD> 2012-11-12 </TD> <TD align="right"> 37.38 </TD> <TD align="right"> 0.00 </TD> </TR>
-  <TR> <TD> 2012-11-13 </TD> <TD align="right"> 25.47 </TD> <TD align="right"> 0.00 </TD> </TR>
-  <TR> <TD> 2012-11-14 </TD> <TD align="right"> 37.38 </TD> <TD align="right"> 34.11 </TD> </TR>
-  <TR> <TD> 2012-11-15 </TD> <TD align="right"> 0.14 </TD> <TD align="right"> 0.00 </TD> </TR>
-  <TR> <TD> 2012-11-16 </TD> <TD align="right"> 18.89 </TD> <TD align="right"> 0.00 </TD> </TR>
-  <TR> <TD> 2012-11-17 </TD> <TD align="right"> 49.79 </TD> <TD align="right"> 0.00 </TD> </TR>
-  <TR> <TD> 2012-11-18 </TD> <TD align="right"> 52.47 </TD> <TD align="right"> 0.00 </TD> </TR>
-  <TR> <TD> 2012-11-19 </TD> <TD align="right"> 30.70 </TD> <TD align="right"> 0.00 </TD> </TR>
-  <TR> <TD> 2012-11-20 </TD> <TD align="right"> 15.53 </TD> <TD align="right"> 0.00 </TD> </TR>
-  <TR> <TD> 2012-11-21 </TD> <TD align="right"> 44.40 </TD> <TD align="right"> 0.00 </TD> </TR>
-  <TR> <TD> 2012-11-22 </TD> <TD align="right"> 70.93 </TD> <TD align="right"> 0.00 </TD> </TR>
-  <TR> <TD> 2012-11-23 </TD> <TD align="right"> 73.59 </TD> <TD align="right"> 0.00 </TD> </TR>
-  <TR> <TD> 2012-11-24 </TD> <TD align="right"> 50.27 </TD> <TD align="right"> 0.00 </TD> </TR>
-  <TR> <TD> 2012-11-25 </TD> <TD align="right"> 41.09 </TD> <TD align="right"> 0.00 </TD> </TR>
-  <TR> <TD> 2012-11-26 </TD> <TD align="right"> 38.76 </TD> <TD align="right"> 0.00 </TD> </TR>
-  <TR> <TD> 2012-11-27 </TD> <TD align="right"> 47.38 </TD> <TD align="right"> 0.00 </TD> </TR>
-  <TR> <TD> 2012-11-28 </TD> <TD align="right"> 35.36 </TD> <TD align="right"> 0.00 </TD> </TR>
-  <TR> <TD> 2012-11-29 </TD> <TD align="right"> 24.47 </TD> <TD align="right"> 0.00 </TD> </TR>
-  <TR> <TD> 2012-11-30 </TD> <TD align="right"> 37.38 </TD> <TD align="right"> 34.11 </TD> </TR>
-   </TABLE>
+```
+## [1] 10766
+```
+
+```r
+hist_2 <- ggplot(tidy2, aes(x = date)) + geom_histogram(binwidth = 1, aes(weight = steps)) + scale_x_date(breaks = "1 day", limits = c(as.Date(tidy2[which.min(tidy2[, 2]), 2]), as.Date(tidy2[which.max(tidy2[, 2]), 2]) + 1), expand = c(0 ,0)) + ylab("total steps") + xlab("date") + theme(axis.text.x = element_text(angle = 90, hjust = 1, vjust = 1)) + geom_hline(aes(yintercept = mean2), color = "red") + geom_hline(aes(yintercept = round(median2, 0)), color = "#0066ff", linetype="dashed") + annotate("text", x = as.Date(names(tidydata2[2]), format = "%Y-%m-%d"), y = mean2 * 0.9, label = paste("mean: ", round(mean2, 0)), color = "red", hjust=0) + annotate("text", x = as.Date(names(tidydata2[2]), format = "%Y-%m-%d"), y = median2 * 1.15, label = paste("median: ", round(median2, 0)), color = "#0066ff", hjust=0)
+hist_2
+```
+
+![plot of chunk hist_2](./PA1_template_files/figure-html/hist_2.png) 
+
+The resulting histogram and the mean and median values are clearly different after imputing missing values.  
+
+Empty bins in the histogram (i.e. days where all values were NA) had all values for all intervals replaced with mean values, increasing the frequency of "average day" instances, thus causing the mean and median lines to overlap.  
+
 
 ## Are there differences in activity patterns between weekdays and weekends?
 
-The following code creates a new factor variable in the `tidy2` dataset with two levels -- "weekday" and "weekend" indicating whether a given date is a weekday or weekend day.
+The following code creates a new factor variable in the `tidy2` dataset with two levels -- "weekday" and "weekend" indicating whether a given date is a weekday or weekend day.  
 
 ```r
 tidy2$wd <- weekdays(tidy2$date)
@@ -321,13 +233,15 @@ levels(tidy2$wd)
 ```
 
 
-The following code creates a panel plot containing a time series plot (i.e. type = "l") of the 5-minute interval (x-axis) and the average number of steps taken, averaged across all weekday days or weekend days (y-axis).
+The following code creates a panel plot containing a time series plot (i.e. type = "l") of the 5-minute interval (x-axis) and the average number of steps taken, averaged across all weekday days or weekend days (y-axis).  
+
+(**Note:** I ran out of time and was not able to figure out why the first panel does not show a line)  
 
 ```r
 intervals <- as.factor(tidy2$interval)
 avgsteps2 <- tapply(tidy2$steps, tidy2$interval, mean, na.rm = TRUE)
 library(lattice)
-xyplot(avgsteps2 ~ intervals | tidy2$wd, layout = c(1, 2), type = "l")
+xyplot(avgsteps2 ~ intervals | wd, data = tidy2, xlab="5-minute intervals", ylab="Average number of steps", layout = c(1, 2), type = "l")
 ```
 
-![plot of chunk plotbyweekday](figure/plotbyweekday.png) 
+![plot of chunk plot_by_weekday](./PA1_template_files/figure-html/plot_by_weekday.png) 
